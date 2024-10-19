@@ -6,6 +6,7 @@ import com.engati.ecommerce.model.entity.User;
 import com.engati.ecommerce.model.enums.Role;
 import com.engati.ecommerce.repository.MerchantRepository;
 import com.engati.ecommerce.repository.UserRepository;
+import com.engati.ecommerce.request.LoginCredentials;
 import com.engati.ecommerce.responses.UserResponse;
 import com.engati.ecommerce.service.UserService;
 import org.modelmapper.ModelMapper;
@@ -61,7 +62,15 @@ public class UserServiceImplementation implements UserService {
     }
 
     @Override
-    public UserDto loginUser(String email, String password) {
-        return null;
+    public UserResponse loginUser(LoginCredentials loginCredentials) {
+        User user = userRepository.findByEmail(loginCredentials.getEmail())
+                .orElseThrow(() -> new RuntimeException("User not found with email: " + loginCredentials.getEmail()));
+
+        if (!user.getPassword().equals(loginCredentials.getPassword())) {
+            throw new RuntimeException("Invalid password provided.");
+        }
+
+        return new UserResponse(user.getId(), "Login successful",user.getRole().name());
     }
+
 }

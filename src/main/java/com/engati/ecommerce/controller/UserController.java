@@ -1,6 +1,7 @@
 package com.engati.ecommerce.controller;
 
 import com.engati.ecommerce.model.dto.UserDto;
+import com.engati.ecommerce.request.LoginCredentials;
 import com.engati.ecommerce.responses.UserResponse;
 import com.engati.ecommerce.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,8 +16,12 @@ public class UserController {
     @PostMapping("/register")
     public UserResponse registerUser(@RequestBody UserDto userDto) {
 
-//        return  new UserResponse(12233L,"he;llo",userDto.getRole());
         return userService.registerUser(userDto);
+    }
+
+    @PostMapping("/login")
+    public  UserResponse loginUser(@RequestBody LoginCredentials loginCredentials){
+        return  userService.loginUser(loginCredentials);
     }
 
 
