@@ -3,12 +3,7 @@ package com.engati.ecommerce.model.entity;
 import com.engati.ecommerce.model.enums.Role;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
-
-
-import java.util.Set;
 
 @Entity
 @Table(name = "users")
@@ -62,7 +57,7 @@ public class User {
     @Enumerated(EnumType.STRING)
     private Role role;
 
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL,orphanRemoval = true)
     private Merchant merchantDetails;
 
 

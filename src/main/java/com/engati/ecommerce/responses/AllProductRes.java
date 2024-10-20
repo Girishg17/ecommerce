@@ -1,13 +1,10 @@
-package com.engati.ecommerce.model.entity;
+package com.engati.ecommerce.responses;
 
-import jakarta.persistence.*;
+public class AllProductRes {
 
-@Entity
-@Table(name = "Products")
-public class Product {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long productId;
+
+    private Long merchantId;
 
     private String name;
 
@@ -21,18 +18,20 @@ public class Product {
 
     private Integer stock;
 
-    private String category;
-
-    @ManyToOne
-    @JoinColumn(name = "merchant_id")
-    private Merchant merchant;
-
-    public Long getId() {
-        return id;
+    public Long getProductId() {
+        return productId;
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    public void setProductId(Long productId) {
+        this.productId = productId;
+    }
+
+    public Long getMerchantId() {
+        return merchantId;
+    }
+
+    public void setMerchantId(Long merchantId) {
+        this.merchantId = merchantId;
     }
 
     public String getName() {
@@ -59,14 +58,6 @@ public class Product {
         this.description = description;
     }
 
-    public String getFile() {
-        return file;
-    }
-
-    public void setFile(String imageUrl) {
-        this.file = imageUrl;
-    }
-
     public Double getPrice() {
         return price;
     }
@@ -75,12 +66,12 @@ public class Product {
         this.price = price;
     }
 
-    public Integer getStock() {
-        return stock;
+    public String getFile() {
+        return file;
     }
 
-    public void setStock(Integer stock) {
-        this.stock = stock;
+    public void setFile(String file) {
+        this.file = file;
     }
 
     public String getCategory() {
@@ -91,11 +82,25 @@ public class Product {
         this.category = category;
     }
 
-    public Merchant getMerchant() {
-        return merchant;
+    public Integer getStock() {
+        return stock;
     }
 
-    public void setMerchant(Merchant merchant) {
-        this.merchant = merchant;
+    public void setStock(Integer stock) {
+        this.stock = stock;
     }
+
+    public double getRating() {
+        return rating;
+    }
+
+    public void setRating(double rating) {
+        this.rating = rating;
+    }
+
+    private String category;
+
+    private double rating;
+
+
 }

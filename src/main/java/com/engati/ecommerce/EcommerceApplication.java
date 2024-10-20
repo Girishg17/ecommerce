@@ -7,7 +7,6 @@ import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfi
 
 @SpringBootApplication
 public class EcommerceApplication {
-
 	public static void main(String[] args) {
 		SpringApplication.run(EcommerceApplication.class, args);
 	}

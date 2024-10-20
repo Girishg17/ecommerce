@@ -35,10 +35,7 @@ public class UserServiceImplementation implements UserService {
     @Override
     @Transactional
     public UserResponse registerUser(UserDto userDTO) {
-//        System.out.println("register User calling "+ userDTO.getRole()+ userDTO.getPassword()+userDTO.getName()+"email:->"+userDTO.getEmail());
         User user = modelMapper.map(userDTO, User.class);
-
-        System.out.println("register User calling " + userDTO.getRole() + userDTO.getPassword() + userDTO.getName() + "email:->" + userDTO.getEmail());
         user.setName(userDTO.getName());
         user.setEmail(userDTO.getEmail());
         user.setPassword(userDTO.getPassword());
@@ -53,10 +50,8 @@ public class UserServiceImplementation implements UserService {
 
             merchantRepository.save(merchant);
             message = "Merchant Created Successfully";
-
             return new UserResponse(savedUser.getId(), message, savedUser.getRole().name());
         }
-
         message = "User Created Successfully";
         return new UserResponse(savedUser.getId(), message, savedUser.getRole().name());
     }
@@ -70,7 +65,7 @@ public class UserServiceImplementation implements UserService {
             throw new RuntimeException("Invalid password provided.");
         }
 
-        return new UserResponse(user.getId(), "Login successful",user.getRole().name());
+        return new UserResponse(user.getId(), "Login successful", user.getRole().name());
     }
 
 }

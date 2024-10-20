@@ -20,11 +20,9 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public  UserResponse loginUser(@RequestBody LoginCredentials loginCredentials){
-        return  userService.loginUser(loginCredentials);
+    public UserResponse loginUser(@RequestBody LoginCredentials loginCredentials) {
+        return userService.loginUser(loginCredentials);
     }
-
-
 
 
 }

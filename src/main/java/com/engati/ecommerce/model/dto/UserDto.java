@@ -1,9 +1,5 @@
 package com.engati.ecommerce.model.dto;
 
-import lombok.Getter;
-import lombok.Setter;
-
-
 public class UserDto {
 
     private String name;
