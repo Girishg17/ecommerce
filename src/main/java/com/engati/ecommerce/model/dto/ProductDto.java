@@ -4,6 +4,10 @@ public class ProductDto {
     private String name;
     private String usp;
     private String description;
+    private Double price;
+    private Integer stock;
+    private String category;
+    private String file;
 
     public String getFile() {
         return file;
@@ -13,10 +17,7 @@ public class ProductDto {
         this.file = file;
     }
 
-    private Double price;
-    private Integer stock;
-    private String category;
-    private String file;
+
 
 
     public String getName() {
