@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 @Entity
 @Table(name = "Products")
 public class Product {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -21,12 +22,15 @@ public class Product {
 
     private Integer stock;
 
-    private String category;
-
     @ManyToOne
     @JoinColumn(name = "merchant_id")
     private Merchant merchant;
 
+    @ManyToOne
+    @JoinColumn(name = "category_id")
+    private Category category;
+
+    // Getters and Setters
     public Long getId() {
         return id;
     }
@@ -63,8 +67,8 @@ public class Product {
         return file;
     }
 
-    public void setFile(String imageUrl) {
-        this.file = imageUrl;
+    public void setFile(String file) {
+        this.file = file;
     }
 
     public Double getPrice() {
@@ -83,19 +87,19 @@ public class Product {
         this.stock = stock;
     }
 
-    public String getCategory() {
-        return category;
-    }
-
-    public void setCategory(String category) {
-        this.category = category;
-    }
-
     public Merchant getMerchant() {
         return merchant;
     }
 
     public void setMerchant(Merchant merchant) {
         this.merchant = merchant;
+    }
+
+    public Category getCategory() {
+        return category;
+    }
+
+    public void setCategory(Category category) {
+        this.category = category;
     }
 }

@@ -22,6 +22,9 @@ public class User {
 
     private String password;
 
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL,orphanRemoval = true)
+    private Merchant merchantDetails;
+
     public void setId(Long id) {
         this.id = id;
     }
@@ -57,8 +60,7 @@ public class User {
     @Enumerated(EnumType.STRING)
     private Role role;
 
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL,orphanRemoval = true)
-    private Merchant merchantDetails;
+
 
 
     public void setPassword(String encode) {

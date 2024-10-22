@@ -14,7 +14,6 @@
 //
 //@Configuration
 //@EnableWebSecurity
-//@EnableMethodSecurity
 //public class SecurityConfig {
 //
 //
@@ -22,7 +21,8 @@
 //    public BCryptPasswordEncoder passwordEncoder() {
 //        return new BCryptPasswordEncoder();
 //    }
-////    public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
+//
+//    //    public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
 ////        return httpSecurity
 ////                .csrf(csrf -> csrf.disable())
 ////                .authorizeHttpRequests(auth -> auth
@@ -33,4 +33,16 @@
 ////                .httpBasic(Customizer.withDefaults())
 ////                .build();
 ////    }
+////    @Bean
+////    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+////        http
+////                .authorizeHttpRequests(authorize -> authorize
+////                        .requestMatchers("*").permitAll()
+////                        .anyRequest().authenticated()
+////                )
+////                .rememberMe(Customizer.withDefaults());
+////
+////        return http.build();
+////    }
+//
 //}

@@ -6,8 +6,17 @@ public class ProductDto {
     private String description;
     private Double price;
     private Integer stock;
-    private String category;
+    //    private String category;
     private String file;
+    private Long categoryId;
+
+    public Long getCategoryId() {
+        return categoryId;
+    }
+
+    public void setCategoryId(Long categoryId) {
+        this.categoryId = categoryId;
+    }
 
     public String getFile() {
         return file;
@@ -16,8 +25,6 @@ public class ProductDto {
     public void setFile(String file) {
         this.file = file;
     }
-
-
 
 
     public String getName() {
@@ -60,12 +67,12 @@ public class ProductDto {
         this.stock = stock;
     }
 
-    public String getCategory() {
-        return category;
-    }
-
-    public void setCategory(String category) {
-        this.category = category;
-    }
+//    public String getCategory() {
+//        return category;
+//    }
+//
+//    public void setCategory(String category) {
+//        this.category = category;
+//    }
 
 }

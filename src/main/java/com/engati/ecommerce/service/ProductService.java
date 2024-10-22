@@ -17,4 +17,6 @@ public interface ProductService {
     public void addproduct(Long id,ProductDto dto);
     public  List<ProdResponse> getAllProductOfMerchant(Long merchantId);
     public void addproductswithCloudinary(ProductRequest preq,Long id) throws IOException;
+    public void deleteProduct(Long id);
+    public Product updateProduct(Long id, ProductDto dto);
 }

@@ -9,8 +9,17 @@ public class ProductRequest {
     private Integer stock;
     private String usp;
     private String description;
-    private String category;
+    //private String category;
+    private Long categoryId;
     private MultipartFile image;
+
+    public Long getCategoryId() {
+        return categoryId;
+    }
+
+    public void setCategoryId(Long categoryId) {
+        this.categoryId = categoryId;
+    }
 
     public String getName() {
         return name;
@@ -52,13 +61,13 @@ public class ProductRequest {
         this.description = description;
     }
 
-    public String getCategory() {
-        return category;
-    }
-
-    public void setCategory(String category) {
-        this.category = category;
-    }
+//    public String getCategory() {
+//        return category;
+//    }
+//
+//    public void setCategory(String category) {
+//        this.category = category;
+//    }
 
     public MultipartFile getImage() {
         return image;
