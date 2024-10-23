@@ -11,10 +11,10 @@ import com.engati.ecommerce.responses.UserResponse;
 import com.engati.ecommerce.service.UserService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-//import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.mindrot.jbcrypt.BCrypt;
 
 import java.util.Optional;
 
@@ -30,56 +30,36 @@ public class UserServiceImplementation implements UserService {
     @Autowired
     private ModelMapper modelMapper;
 
-//    @Autowired
-//    private BCryptPasswordEncoder passwordEncoder;
-
     String message;
-
-//    @Override
-//    @Transactional
-//    public UserResponse registerUser(UserDto userDTO) {
-//        User user = modelMapper.map(userDTO, User.class);
-//        user.setName(userDTO.getName());
-//        user.setEmail(userDTO.getEmail());
-//        user.setPassword(userDTO.getPassword());
-//
-//        user.setRole(Role.valueOf(userDTO.getRole().toUpperCase()));
-//        User savedUser = userRepository.save(user);
-//
-//        if (Role.valueOf(userDTO.getRole().toUpperCase()) == Role.MERCHANT) {
-//            Merchant merchant = modelMapper.map(userDTO, Merchant.class);
-//            merchant.setUser(savedUser);
-//            merchant.setRating(0.0);
-//
-//            merchantRepository.save(merchant);
-//            message = "Merchant Created Successfully";
-//            return new UserResponse(savedUser.getId(), message, savedUser.getRole().name());
-//        }
-//        message = "User Created Successfully";
-//        return new UserResponse(savedUser.getId(), message, savedUser.getRole().name());
-//    }
 
     @Override
     @Transactional
     public UserResponse registerUser(UserDto userDTO) {
         try {
-            // Map userDTO to User entity
-            Optional<User> isUserExist=userRepository.findByEmail(userDTO.getEmail());
+            // Check if the user already exists
+            Optional<User> isUserExist = userRepository.findByEmail(userDTO.getEmail());
             if (isUserExist.isPresent()) {
                 // Return a response indicating that the user already exists
                 String errorMessage = "User already exists with this email";
                 return new UserResponse(null, errorMessage, null);
             }
+
+            // Map UserDto to User entity
             User user = modelMapper.map(userDTO, User.class);
             user.setName(userDTO.getName());
             user.setEmail(userDTO.getEmail());
-            user.setPassword(userDTO.getPassword());
+
+            // Hash the password using BCrypt before saving
+            String hashedPassword = BCrypt.hashpw(userDTO.getPassword(), BCrypt.gensalt());
+            user.setPassword(hashedPassword);
+
+            // Set the role
             user.setRole(Role.valueOf(userDTO.getRole().toUpperCase()));
 
-            // Try saving the user
+            // Save the user
             User savedUser = userRepository.save(user);
 
-            // Handle the case where the role is MERCHANT
+            // If the role is MERCHANT, save merchant-specific details
             if (Role.valueOf(userDTO.getRole().toUpperCase()) == Role.MERCHANT) {
                 Merchant merchant = modelMapper.map(userDTO, Merchant.class);
                 merchant.setUser(savedUser);
@@ -94,7 +74,7 @@ public class UserServiceImplementation implements UserService {
             return new UserResponse(savedUser.getId(), message, savedUser.getRole().name());
 
         } catch (DataIntegrityViolationException ex) {
-            // Handle the case where the email already exists (constraint violation)
+            // Handle the case where the email already exists
             String errorMessage = "User already exists with this email";
             return new UserResponse(null, errorMessage, null);
 
@@ -107,14 +87,15 @@ public class UserServiceImplementation implements UserService {
 
     @Override
     public UserResponse loginUser(LoginCredentials loginCredentials) {
+        // Fetch the user by email
         User user = userRepository.findByEmail(loginCredentials.getEmail())
                 .orElseThrow(() -> new RuntimeException("User not found with email: " + loginCredentials.getEmail()));
 
-        if (!user.getPassword().equals(loginCredentials.getPassword())) {
+        // Check if the entered password matches the hashed password in the database
+        if (!BCrypt.checkpw(loginCredentials.getPassword(), user.getPassword())) {
             throw new RuntimeException("Invalid password provided.");
         }
 
         return new UserResponse(user.getId(), "Login successful", user.getRole().name());
     }
-
 }

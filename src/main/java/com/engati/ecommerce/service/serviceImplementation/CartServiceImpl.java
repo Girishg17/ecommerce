@@ -10,11 +10,16 @@ import com.engati.ecommerce.repository.CartItemRepository;
 import com.engati.ecommerce.repository.CartRepository;
 import com.engati.ecommerce.repository.ProductRepository;
 import com.engati.ecommerce.repository.UserRepository;
+import com.engati.ecommerce.responses.CartItemResponse;
+import com.engati.ecommerce.responses.CartResponse;
 import com.engati.ecommerce.service.CartService;
+import com.engati.ecommerce.service.ProductService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -32,25 +37,57 @@ public class CartServiceImpl implements CartService {
     private UserRepository userRepository;
 
     @Autowired
+    private ProductService productService;
+
+    @Autowired
     private ModelMapper modelMapper;
 
-    public CartDTO getCartByUserId(Long userId) {
+    @Override
+    public CartResponse getCartByUserId(Long userId) {
         Optional<Cart> cartOptional = cartRepository.findByUserId(userId);
-        CartDTO cartDto=modelMapper.map(cartOptional,CartDTO.class);
-        return cartDto;
+        CartResponse cartResponse = new CartResponse();
+
+        if (cartOptional.isPresent()) {
+            Cart cart = cartOptional.get();
+            List<CartItemResponse> itemResponses = new ArrayList<>();
+
+            for (CartItem cartItem : cart.getItems()) {
+                Product product = productService.getProductById(cartItem.getProduct().getId()); // Fetch the product
+
+                // Create a new CartItemResponse for each cart item
+                CartItemResponse itemResponse = new CartItemResponse();
+                itemResponse.setProductId(product.getId());
+                itemResponse.setProductName(product.getName());
+                itemResponse.setProductUsp(product.getUsp());
+                itemResponse.setProductDescription(product.getDescription());
+                itemResponse.setProductFile(product.getFile());
+                itemResponse.setProductPrice(product.getPrice());
+                itemResponse.setProductStock(product.getStock());
+                itemResponse.setQuantity(cartItem.getQuantity());
+
+                itemResponses.add(itemResponse);
+            }
+
+            cartResponse.setItems(itemResponses); // Set the list of items in the cart response
+        }
+
+        return cartResponse; // Return the cart response
     }
+
+
 
     public void addToCart(Long userId, CartItemDto cartItemDTO) {
         Cart cart = cartRepository.findByUserId(userId).orElseGet(() -> createNewCart(userId));
-
+        System.out.println("cart"+cart.getItems());
         Product product = productRepository.findById(cartItemDTO.getProductId())
                 .orElseThrow(() -> new RuntimeException("Product not found"));
-
+        System.out.println("PR "+product.getName());
+//
         CartItem cartItem = new CartItem();
         cartItem.setProduct(product);
         cartItem.setQuantity(cartItemDTO.getQuantity());
         cartItem.setCart(cart);
-
+//
         cart.getItems().add(cartItem);
         cartRepository.save(cart);
     }
