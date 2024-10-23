@@ -76,21 +76,55 @@ public class CartServiceImpl implements CartService {
 
 
 
-    public void addToCart(Long userId, CartItemDto cartItemDTO) {
+//    public void addToCart(Long userId, CartItemDto cartItemDTO) {
+//        Cart cart = cartRepository.findByUserId(userId).orElseGet(() -> createNewCart(userId));
+//        System.out.println("cart"+cart.getItems());
+//        Product product = productRepository.findById(cartItemDTO.getProductId())
+//                .orElseThrow(() -> new RuntimeException("Product not found"));
+//        System.out.println("PR "+product.getName());
+////
+//        CartItem cartItem = new CartItem();
+//        cartItem.setProduct(product);
+//        cartItem.setQuantity(cartItemDTO.getQuantity());
+//        cartItem.setCart(cart);
+////
+//        cart.getItems().add(cartItem);
+//        cartRepository.save(cart);
+//    }
+
+    public String addToCart(Long userId, CartItemDto cartItemDTO) {
+        // Find or create a new cart for the user
         Cart cart = cartRepository.findByUserId(userId).orElseGet(() -> createNewCart(userId));
-        System.out.println("cart"+cart.getItems());
+        System.out.println("cart" + cart.getItems());
+
+        // Find the product by ID
         Product product = productRepository.findById(cartItemDTO.getProductId())
                 .orElseThrow(() -> new RuntimeException("Product not found"));
-        System.out.println("PR "+product.getName());
-//
+        System.out.println("PR " + product.getName());
+
+        // Check if the product is already in the cart
+        boolean productExistsInCart = cart.getItems().stream()
+                .anyMatch(item -> item.getProduct().getId().equals(cartItemDTO.getProductId()));
+
+        if (productExistsInCart) {
+            // If product already exists, return an error message
+            return "Product already in cart";
+        }
+
+        // Create a new CartItem and set its properties
         CartItem cartItem = new CartItem();
         cartItem.setProduct(product);
         cartItem.setQuantity(cartItemDTO.getQuantity());
         cartItem.setCart(cart);
-//
+
+        // Add the new CartItem to the cart and save
         cart.getItems().add(cartItem);
         cartRepository.save(cart);
+
+        // Return success message
+        return "Product added to cart successfully";
     }
+
 
     private Cart createNewCart(Long userId) {
         Cart cart = new Cart();

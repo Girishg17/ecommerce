@@ -6,7 +6,7 @@ import com.engati.ecommerce.responses.CartResponse;
 
 public interface CartService {
     public CartResponse getCartByUserId(Long userId);
-    public void addToCart(Long userId, CartItemDto cartItemDTO);
+    public String addToCart(Long userId, CartItemDto cartItemDTO);
     public void removeFromCart(Long userId, Long productId);
     public void updateCartItem(Long userId, Long productId, Integer quantity);
 }

@@ -6,6 +6,7 @@ import com.engati.ecommerce.request.QuantityReq;
 import com.engati.ecommerce.responses.CartResponse;
 import com.engati.ecommerce.service.CartService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -24,9 +25,10 @@ public class CartController {
     }
 
     @PostMapping("/{userId}/add")
-    public void addToCart(@PathVariable Long userId, @RequestBody CartItemDto cartItemDTO) {
+    public ResponseEntity<String>  addToCart(@PathVariable Long userId, @RequestBody CartItemDto cartItemDTO) {
         System.out.println(cartItemDTO.getProductId()+ cartItemDTO.getQuantity());
-        cartService.addToCart(userId, cartItemDTO);
+        String message=cartService.addToCart(userId, cartItemDTO);
+        return ResponseEntity.ok(message);
     }
 
     @DeleteMapping("/{userId}/remove/{productId}")
