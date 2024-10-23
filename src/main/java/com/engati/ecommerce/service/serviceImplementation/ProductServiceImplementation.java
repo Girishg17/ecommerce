@@ -7,6 +7,7 @@ import com.engati.ecommerce.model.entity.Product;
 import com.engati.ecommerce.repository.CategoryRepository;  // <-- Add Category Repository
 import com.engati.ecommerce.repository.MerchantRepository;
 import com.engati.ecommerce.repository.ProductRepository;
+import com.engati.ecommerce.request.ProdReq;
 import com.engati.ecommerce.request.ProductRequest;
 import com.engati.ecommerce.responses.AllProductRes;
 import com.engati.ecommerce.responses.ProdResponse;
@@ -99,6 +100,7 @@ public class ProductServiceImplementation implements ProductService {
 
     @Override
     public void addproductswithCloudinary(ProductRequest productRequest, Long merchantId) throws IOException {
+        System.out.println("its coming here");
         String imageUrl = cloudinaryService.upload(productRequest.getImage());
         Merchant merchant = merchantService.findMerchantById(merchantId)
                 .orElseThrow(() -> new RuntimeException("Merchant not found"));
@@ -106,11 +108,28 @@ public class ProductServiceImplementation implements ProductService {
         Category category = categoryRepository.findById(productRequest.getCategoryId())
                 .orElseThrow(() -> new RuntimeException("Category not found"));
 
-        Product product = modelMapper.map(productRequest, Product.class);
-        product.setMerchant(merchant);
-        product.setCategory(category);
+//        Product product = modelMapper.map(productRequest, Product.class);
+//        product.setMerchant(merchant);
+//        product.setCategory(category);
+//        product.setFile(imageUrl);
+//
+//        productRepository.save(product);
+
+        Product product = new Product();
+
+        // Manually set the properties from productRequest to product
+        product.setName(productRequest.getName());
+        product.setUsp(productRequest.getUsp());
+        product.setDescription(productRequest.getDescription());
         product.setFile(imageUrl);
-        System.out.println("uploaded image url" + imageUrl);
+        product.setPrice(productRequest.getPrice());
+        product.setStock(productRequest.getStock());
+        product.setMerchant(merchant); // Associate the merchant
+        product.setCategory(category); // Associate the existing category
+
+        System.out.println("Saving product with name: " + product.getName() + " and category: " + category.getName());
+
+        // Save the product; this should not modify the existing category
         productRepository.save(product);
     }
     @Override
@@ -122,32 +141,35 @@ public class ProductServiceImplementation implements ProductService {
     }
 
     @Override
-    public Product updateProduct(Long id, ProductDto dto) {
+    public void updateProduct(Long id, ProdReq p) throws IOException {
         Product existingProduct = productRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Product not found"));
 
-        if (dto.getName() != null) {
-            existingProduct.setName(dto.getName());
-        }
-        if (dto.getUsp() != null) {
-            existingProduct.setUsp(dto.getUsp());
-        }
-        if (dto.getDescription() != null) {
-            existingProduct.setDescription(dto.getDescription());
-        }
+         if(p.getImage()!=null && !p.getImage().isEmpty()) {
+             String imageUrl = cloudinaryService.upload(p.getImage());
+             existingProduct.setFile(imageUrl);
+         }
+
+            existingProduct.setName(p.getName());
+
+
+//            existingProduct.setUsp(dto.getUsp());
+
+//        if (dto.getDescription() != null) {
+//            existingProduct.setDescription(dto.getDescription());
+//        }
 //        if (dto.getFile() != null) {
 //            Category category = categoryRepository.findById(dto.getCategoryId())
 //                    .orElseThrow(() -> new RuntimeException("Category not found"));
 //            existingProduct.setCategory(category);
 //        }
-        if (dto.getPrice() != null) {
-            existingProduct.setPrice(dto.getPrice());
-        }
-        if (dto.getStock() != null) {
-            existingProduct.setStock(dto.getStock());
-        }
 
-        return productRepository.save(existingProduct);
+            existingProduct.setPrice(p.getPrice());
+
+            existingProduct.setStock(p.getStock());
+
+
+         productRepository.save(existingProduct);
     }
 }
 
