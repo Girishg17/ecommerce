@@ -6,6 +6,8 @@ import com.engati.ecommerce.model.enums.Role;
 import com.engati.ecommerce.repository.OrderRepository;
 import com.engati.ecommerce.repository.UserRepository;
 import com.engati.ecommerce.service.CartService;
+//import com.engati.ecommerce.service.EmailService;
+import com.engati.ecommerce.service.EmailService;
 import com.engati.ecommerce.service.OrderService;
 import com.engati.ecommerce.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +27,8 @@ public class OrderServiceImpl implements OrderService {
 
     @Autowired
     private OrderRepository orderRepository;
+    @Autowired
+    private EmailService emailService;
 
     @Autowired
     private CartService cartService;
@@ -61,6 +65,11 @@ public class OrderServiceImpl implements OrderService {
             order.setStatus(OrderStatus.PENDING);
             orderRepository.save(order);
             cartService.deleteCart(cartId);
+
+            emailService.sendEmail(user.getEmail(),
+                    "Confirmation of Your Order #" + order.getId(),
+                    "Your order has been placed successfully.");
+//
         }
 
     }
