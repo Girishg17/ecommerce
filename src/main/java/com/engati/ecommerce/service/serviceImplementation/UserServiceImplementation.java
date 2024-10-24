@@ -98,4 +98,7 @@ public class UserServiceImplementation implements UserService {
 
         return new UserResponse(user.getId(), "Login successful", user.getRole().name());
     }
+    public Optional<User> getUserById(Long id){
+        return userRepository.findById(id);
+    }
 }

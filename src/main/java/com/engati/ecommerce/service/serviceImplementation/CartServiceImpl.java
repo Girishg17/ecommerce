@@ -91,12 +91,19 @@ public class CartServiceImpl implements CartService {
 //        cart.getItems().add(cartItem);
 //        cartRepository.save(cart);
 //    }
-
+public List<CartItem> cartItemofUser(Long userId) {
+        List<CartItem>cart=cartRepository.findByUserId(userId).get().getItems();
+        return cart;
+}
+public Long getCartId(Long userId){
+        return cartRepository.findByUserId(userId).get().getId();
+}
     public String addToCart(Long userId, CartItemDto cartItemDTO) {
         // Find or create a new cart for the user
         Cart cart = cartRepository.findByUserId(userId).orElseGet(() -> createNewCart(userId));
-        System.out.println("cart" + cart.getItems());
-
+        if (cart == null) {
+            return "Cart could not be created";
+        }
         // Find the product by ID
         Product product = productRepository.findById(cartItemDTO.getProductId())
                 .orElseThrow(() -> new RuntimeException("Product not found"));
@@ -149,5 +156,10 @@ public class CartServiceImpl implements CartService {
 
         cartItem.setQuantity(quantity);
         cartItemRepository.save(cartItem);
+    }
+    public void deleteCart(Long cartId){
+
+        cartRepository.deleteById(cartId);
+        System.out.println("Deleted succces");
     }
 }

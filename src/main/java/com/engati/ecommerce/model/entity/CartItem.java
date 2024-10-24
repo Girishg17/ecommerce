@@ -22,6 +22,7 @@ import jakarta.persistence.*;
 
         private Integer quantity;
 
+
         public Long getId() {
             return id;
         }
