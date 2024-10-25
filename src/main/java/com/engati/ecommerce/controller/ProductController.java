@@ -2,6 +2,7 @@ package com.engati.ecommerce.controller;
 
 import com.engati.ecommerce.model.dto.ProductDto;
 import com.engati.ecommerce.model.entity.Product;
+import com.engati.ecommerce.model.entity.ProductDocument;
 import com.engati.ecommerce.request.ProdReq;
 import com.engati.ecommerce.request.ProductRequest;
 import com.engati.ecommerce.responses.AllProductRes;
@@ -11,7 +12,6 @@ import com.engati.ecommerce.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
@@ -26,6 +26,16 @@ public class ProductController {
     @GetMapping("/all")
     public List<AllProductRes> findAllProducts() {
         return productService.getAllProduct();
+    }
+
+    @GetMapping("/category/{categoryId}")
+    public List<AllProductRes>getProductByCategory(@PathVariable Long categoryId){
+        return productService.getProductByCategory(categoryId);
+    }
+
+    @DeleteMapping("/delete/elastic")
+    public void deleteP(){
+        productService.deleteAllProducts();
     }
 
     @GetMapping("/{merchantId}/products")
@@ -62,5 +72,11 @@ public class ProductController {
 //        System.out.println(productDto.getName());
          productService.updateProduct(productId, p);
         return ResponseEntity.ok("updated success");
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<ProductDocument>> searchProducts(@RequestParam String name) {
+        List<ProductDocument> products = productService.searchProducts(name);
+        return ResponseEntity.ok(products);
     }
 }

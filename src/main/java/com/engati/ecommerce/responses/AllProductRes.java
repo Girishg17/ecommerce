@@ -18,6 +18,12 @@ public class AllProductRes {
 
     private Integer stock;
 
+    public void setRating(Double rating) {
+        this.rating = rating;
+    }
+
+    private Double rating;
+
     public Long getProductId() {
         return productId;
     }
@@ -100,7 +106,6 @@ public class AllProductRes {
 
     private String category;
 
-    private double rating;
 
 
 }

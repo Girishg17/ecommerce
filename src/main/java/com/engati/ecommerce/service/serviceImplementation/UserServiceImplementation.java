@@ -63,7 +63,7 @@ public class UserServiceImplementation implements UserService {
             if (Role.valueOf(userDTO.getRole().toUpperCase()) == Role.MERCHANT) {
                 Merchant merchant = modelMapper.map(userDTO, Merchant.class);
                 merchant.setUser(savedUser);
-                merchant.setRating(0.0);
+
                 merchantRepository.save(merchant);
                 message = "Merchant Created Successfully";
                 return new UserResponse(savedUser.getId(), message, savedUser.getRole().name());

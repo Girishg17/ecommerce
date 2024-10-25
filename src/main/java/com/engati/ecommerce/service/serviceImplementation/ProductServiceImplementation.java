@@ -4,9 +4,8 @@ import com.engati.ecommerce.model.dto.ProductDto;
 import com.engati.ecommerce.model.entity.Category;
 import com.engati.ecommerce.model.entity.Merchant;
 import com.engati.ecommerce.model.entity.Product;
-import com.engati.ecommerce.repository.CategoryRepository;  // <-- Add Category Repository
-import com.engati.ecommerce.repository.MerchantRepository;
-import com.engati.ecommerce.repository.ProductRepository;
+import com.engati.ecommerce.model.entity.ProductDocument;
+import com.engati.ecommerce.repository.*;
 import com.engati.ecommerce.request.ProdReq;
 import com.engati.ecommerce.request.ProductRequest;
 import com.engati.ecommerce.responses.AllProductRes;
@@ -21,7 +20,9 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -44,6 +45,12 @@ public class ProductServiceImplementation implements ProductService {
 
     @Autowired
     private CloudinaryService cloudinaryService;
+
+    @Autowired
+    private ProductSearchRepository productSearchRepository;
+
+    @Autowired
+    private OrderRepository orderRepository;
 
     @Override
     public void addproduct(Long merchantId, ProductDto pdto) {
@@ -74,12 +81,6 @@ public class ProductServiceImplementation implements ProductService {
             AllProductRes response = modelMapper.map(product, AllProductRes.class);
             response.setCategory(product.getCategory().getName());
             Merchant merchant = merchantRepository.findById(product.getMerchant().getId()).orElse(null);
-            if (merchant != null) {
-                response.setRating(merchant.getRating());
-            } else {
-                response.setRating(0.0);
-            }
-
             allProductResponses.add(response);
         }
 
@@ -126,11 +127,12 @@ public class ProductServiceImplementation implements ProductService {
         product.setStock(productRequest.getStock());
         product.setMerchant(merchant); // Associate the merchant
         product.setCategory(category); // Associate the existing category
-
+        product.setRating(0.0);
         System.out.println("Saving product with name: " + product.getName() + " and category: " + category.getName());
 
         // Save the product; this should not modify the existing category
-        productRepository.save(product);
+       Product saved= productRepository.save(product);
+        indexProductInElasticsearch(saved);
     }
     @Override
     public void deleteProduct(Long id) {
@@ -138,6 +140,7 @@ public class ProductServiceImplementation implements ProductService {
             throw new EntityNotFoundException("Product with ID " + id + " not found");
         }
         productRepository.deleteById(id);
+        productSearchRepository.deleteById(id);
     }
 
     @Override
@@ -169,8 +172,92 @@ public class ProductServiceImplementation implements ProductService {
             existingProduct.setStock(p.getStock());
 
 
-         productRepository.save(existingProduct);
+         Product existing =productRepository.save(existingProduct);
+        indexProductInElasticsearch(existing);
     }
+    public void updateStockofProduct(Product p){
+        Product existingProduct = productRepository.findById(p.getId())
+                .orElseThrow(() -> new RuntimeException("Product not found"));
+        existingProduct.setStock(p.getStock());;
+       Product existing= productRepository.save(existingProduct);
+        indexProductInElasticsearch(existing);
+    }
+
+    @Override
+    public List<AllProductRes> getProductByCategory(Long Id) {
+        System.out.println("its coming");
+        Category cat=categoryRepository.findById(Id).orElseThrow(() -> new RuntimeException("Product not found"));
+        List<Product> products = productRepository.findByCategory(cat);
+
+        List<AllProductRes> allProductResponses = new ArrayList<>();
+        for (Product product : products) {
+            System.out.println("category name"+product.getCategory().getName());
+            AllProductRes response = modelMapper.map(product, AllProductRes.class);
+            response.setCategory(product.getCategory().getName());
+            Merchant merchant = merchantRepository.findById(product.getMerchant().getId()).orElse(null);
+
+
+            allProductResponses.add(response);
+        }
+
+        return allProductResponses;
+    }
+
+    private void indexProductInElasticsearch(Product product) {
+        Merchant merchant = merchantRepository.findById(product.getMerchant().getId()).orElseThrow();
+
+        ProductDocument document = new ProductDocument();
+        document.setId(product.getId());
+        document.setName(product.getName());
+        document.setDescription(product.getDescription());
+        document.setPrice(product.getPrice());
+        document.setStock(product.getStock());
+        document.setFile(product.getFile());
+        document.setMerchantId(merchant.getId());
+        document.setMerchantName(merchant.getUser().getName());
+        document.setProductRating(product.getRating());
+        document.setMerchantTotalProducts(merchant.getProducts().size());
+        document.setMerchantTotalOrders(getTotalOrdersForMerchant(merchant.getId()));
+
+
+        productSearchRepository.save(document);
+    }
+    private int getTotalOrdersForMerchant(Long merchantId) {
+        // Implement logic to get the total number of orders for the merchant
+        Merchant merchant = merchantService.findMerchantById(merchantId)
+                .orElseThrow(() -> new RuntimeException("Merchant not found"));
+        return orderRepository.findByMerchant(merchant).size(); // Example value
+    }
+
+//    private double getMerchantReview(Long merchantId) {
+//        Merchant merchant = merchantService.findMerchantById(merchantId)
+//                .orElseThrow(() -> new RuntimeException("Merchant not found"));
+//        return merchant.getRating();
+//    }
+
+    public List<ProductDocument> searchProducts(String name) {
+        List<ProductDocument> products = productSearchRepository.findByNameContaining(name);
+        products.sort(Comparator.comparing(this::calculateWeightedScore).reversed());
+        return products;
+    }
+
+    private double calculateWeightedScore(ProductDocument product) {
+        double stockWeight = 0.3;
+        double ratingWeight = 0.2;
+        double priceWeight = 0.1;
+        double totalOrdersWeight = 0.4;
+
+        double score=(product.getStock() * stockWeight) +
+                (product.getProductRating() * ratingWeight) +
+                (product.getPrice() * priceWeight) +
+                (product.getMerchantTotalOrders() * totalOrdersWeight);
+        System.out.println("score" + product.getMerchantName()+ score);
+        return score;
+    }
+    public void deleteAllProducts() {
+        productSearchRepository.deleteAll();
+    }
+
 }
 
 

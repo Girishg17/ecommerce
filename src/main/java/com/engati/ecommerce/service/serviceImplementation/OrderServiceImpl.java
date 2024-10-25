@@ -4,12 +4,11 @@ import com.engati.ecommerce.model.entity.*;
 import com.engati.ecommerce.model.enums.OrderStatus;
 import com.engati.ecommerce.model.enums.Role;
 import com.engati.ecommerce.repository.OrderRepository;
+import com.engati.ecommerce.repository.ProductRepository;
+import com.engati.ecommerce.repository.ProductSearchRepository;
 import com.engati.ecommerce.repository.UserRepository;
-import com.engati.ecommerce.service.CartService;
+import com.engati.ecommerce.service.*;
 //import com.engati.ecommerce.service.EmailService;
-import com.engati.ecommerce.service.EmailService;
-import com.engati.ecommerce.service.OrderService;
-import com.engati.ecommerce.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -31,22 +30,26 @@ public class OrderServiceImpl implements OrderService {
     private EmailService emailService;
 
     @Autowired
+    private ProductService productService;
+
+    @Autowired
+    private ProductSearchRepository productSearchRepository;
+
+    @Autowired
     private CartService cartService;
+
     @Override
-    public void createOrderForUser(Long userId, List<CartItem> cartItems,Long cartId) {
-        User user=userService.getUserById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+    public void createOrderForUser(Long userId, List<CartItem> cartItems, Long cartId) {
+        User user = userService.getUserById(userId).orElseThrow(() -> new RuntimeException("User not found"));
         Map<Merchant, List<CartItem>> itemsGroupedByMerchant = cartItems.stream()
                 .collect(Collectors.groupingBy(item -> item.getProduct().getMerchant()));
         for (Map.Entry<Merchant, List<CartItem>> entry : itemsGroupedByMerchant.entrySet()) {
             Merchant merchant = entry.getKey();
             List<CartItem> merchantItems = entry.getValue();
-
-            // Create a new order for the current merchant
             Order order = new Order();
             order.setUser(user);
             order.setMerchant(merchant);
 
-            // Set order items and calculate total amount
             List<OrderItem> orderItems = new ArrayList<>();
             Double totalAmount = 0.0;
             for (CartItem cartItem : merchantItems) {
@@ -58,17 +61,29 @@ public class OrderServiceImpl implements OrderService {
 
                 totalAmount += cartItem.getQuantity() * cartItem.getProduct().getPrice();
                 orderItems.add(orderItem);
+                Product product = cartItem.getProduct();
+                int newStock = product.getStock() - cartItem.getQuantity();
+                if (newStock < 0) {
+                    throw new RuntimeException("Insufficient stock for product: " + product.getName());
+                }
+                product.setStock(newStock);
+                // Save the updated product to the repository
+                productService.updateStockofProduct(product);
+
             }
             order.setOrderDate(LocalDateTime.now());
             order.setOrderItems(orderItems);
             order.setTotalAmount(totalAmount);
             order.setStatus(OrderStatus.PENDING);
             orderRepository.save(order);
+            incrementMerchantOrdersInElasticsearch(merchant.getId());
             cartService.deleteCart(cartId);
 
-            emailService.sendEmail(user.getEmail(),
-                    "Confirmation of Your Order #" + order.getId(),
-                    "Your order has been placed successfully.");
+
+//
+//            emailService.sendEmail(user.getEmail(),
+//                    "Confirmation of Your Order #" + order.getId(),
+//                    "Your order has been placed successfully.");
 //
         }
 
@@ -76,8 +91,22 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public List<Order> getOrdersByUserId(Long userId) {
-        User user=userService.getUserById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+        User user = userService.getUserById(userId).orElseThrow(() -> new RuntimeException("User not found"));
 
         return orderRepository.findByUser(user);
+    }
+
+
+    private void incrementMerchantOrdersInElasticsearch(Long merchantId) {
+        // Retrieve all ProductDocuments for the given merchant
+        List<ProductDocument> merchantProducts = productSearchRepository.findAllByMerchantId(merchantId);
+
+        // Increment the merchantTotalOrders for each product document
+        for (ProductDocument product : merchantProducts) {
+            product.setMerchantTotalOrders(product.getMerchantTotalOrders() + 1);
+        }
+
+        // Save updated product documents back to Elasticsearch
+        productSearchRepository.saveAll(merchantProducts);
     }
 }

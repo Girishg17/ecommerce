@@ -18,16 +18,16 @@ public class CartController {
 
     @GetMapping("/{userId}")
     public CartResponse getCart(@PathVariable Long userId) {
-        CartResponse c=cartService.getCartByUserId(userId);
+        CartResponse c = cartService.getCartByUserId(userId);
 
         return c;
 
     }
 
     @PostMapping("/{userId}/add")
-    public ResponseEntity<String>  addToCart(@PathVariable Long userId, @RequestBody CartItemDto cartItemDTO) {
-        System.out.println(cartItemDTO.getProductId()+ cartItemDTO.getQuantity());
-        String message=cartService.addToCart(userId, cartItemDTO);
+    public ResponseEntity<String> addToCart(@PathVariable Long userId, @RequestBody CartItemDto cartItemDTO) {
+        System.out.println(cartItemDTO.getProductId() + cartItemDTO.getQuantity());
+        String message = cartService.addToCart(userId, cartItemDTO);
         return ResponseEntity.ok(message);
     }
 
@@ -38,11 +38,10 @@ public class CartController {
 
     @PutMapping("/{userId}/update/{productId}")
     public void updateCartItem(@PathVariable Long userId, @PathVariable Long productId, @RequestBody QuantityReq quantityReq) {
-        Integer q=quantityReq.getQuantity();
-        if(q>0) {
+        Integer q = quantityReq.getQuantity();
+        if (q > 0) {
             cartService.updateCartItem(userId, productId, q);
-        }
-        else{
+        } else {
             cartService.removeFromCart(userId, productId);
         }
     }

@@ -33,6 +33,7 @@ public class OrderController {
             orderService.createOrderForUser(userId,cartItems,cartId);
             return ResponseEntity.ok("Order created successfully.");
         } catch (Exception e) {
+            System.out.println(e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error creating order.");
         }
     }

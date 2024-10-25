@@ -22,6 +22,16 @@ public class Product {
 
     private Integer stock;
 
+    private Double rating;
+
+    public Double getRating() {
+        return rating;
+    }
+
+    public void setRating(Double rating) {
+        this.rating = rating;
+    }
+
     @ManyToOne
     @JoinColumn(name = "merchant_id")
     private Merchant merchant;
