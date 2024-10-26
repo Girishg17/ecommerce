@@ -79,4 +79,10 @@ public class ProductController {
         List<ProductDocument> products = productService.searchProducts(name);
         return ResponseEntity.ok(products);
     }
+    @PostMapping("/setrating/{productId}")
+    public  ResponseEntity<String>updateRating(@PathVariable Long productId,@RequestParam("rating") double rating){
+        productService.updateProductRating(productId,rating);
+        return ResponseEntity.ok("updated success");
+    }
+
 }

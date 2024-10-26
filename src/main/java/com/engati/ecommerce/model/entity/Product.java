@@ -23,6 +23,15 @@ public class Product {
     private Integer stock;
 
     private Double rating;
+    private Integer ratingCount;
+    public Integer getRatingCount() {
+        return ratingCount;
+    }
+
+    public void setRatingCount(Integer ratingCount) {
+        this.ratingCount = ratingCount;
+    }
+
 
     public Double getRating() {
         return rating;

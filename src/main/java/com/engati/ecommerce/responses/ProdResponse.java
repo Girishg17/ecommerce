@@ -9,6 +9,24 @@ public class ProdResponse {
     private Double price;
     private Integer stock;
     private String category;
+    private Double rating;
+    private Integer ratingCount;
+
+    public Double getRating() {
+        return rating;
+    }
+
+    public void setRating(Double rating) {
+        this.rating = rating;
+    }
+
+    public Integer getRatingCount() {
+        return ratingCount;
+    }
+
+    public void setRatingCount(Integer ratingCount) {
+        this.ratingCount = ratingCount;
+    }
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }

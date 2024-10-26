@@ -25,4 +25,5 @@ public interface ProductService {
     public void updateStockofProduct(Product p);
     public List<AllProductRes> getProductByCategory(Long Id);
     public void deleteAllProducts();
+    public void updateProductRating(Long ProductId,double rating);
 }

@@ -77,7 +77,7 @@ public class ProductServiceImplementation implements ProductService {
         List<Product> products = productRepository.findAll();
         List<AllProductRes> allProductResponses = new ArrayList<>();
         for (Product product : products) {
-            System.out.println("category name"+product.getCategory().getName());
+            System.out.println("category name" + product.getCategory().getName());
             AllProductRes response = modelMapper.map(product, AllProductRes.class);
             response.setCategory(product.getCategory().getName());
             Merchant merchant = merchantRepository.findById(product.getMerchant().getId()).orElse(null);
@@ -128,12 +128,14 @@ public class ProductServiceImplementation implements ProductService {
         product.setMerchant(merchant); // Associate the merchant
         product.setCategory(category); // Associate the existing category
         product.setRating(0.0);
+        product.setRatingCount(0);
         System.out.println("Saving product with name: " + product.getName() + " and category: " + category.getName());
 
         // Save the product; this should not modify the existing category
-       Product saved= productRepository.save(product);
+        Product saved = productRepository.save(product);
         indexProductInElasticsearch(saved);
     }
+
     @Override
     public void deleteProduct(Long id) {
         if (!productRepository.existsById(id)) {
@@ -148,12 +150,12 @@ public class ProductServiceImplementation implements ProductService {
         Product existingProduct = productRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Product not found"));
 
-         if(p.getImage()!=null && !p.getImage().isEmpty()) {
-             String imageUrl = cloudinaryService.upload(p.getImage());
-             existingProduct.setFile(imageUrl);
-         }
+        if (p.getImage() != null && !p.getImage().isEmpty()) {
+            String imageUrl = cloudinaryService.upload(p.getImage());
+            existingProduct.setFile(imageUrl);
+        }
 
-            existingProduct.setName(p.getName());
+        existingProduct.setName(p.getName());
 
 
 //            existingProduct.setUsp(dto.getUsp());
@@ -167,31 +169,33 @@ public class ProductServiceImplementation implements ProductService {
 //            existingProduct.setCategory(category);
 //        }
 
-            existingProduct.setPrice(p.getPrice());
+        existingProduct.setPrice(p.getPrice());
 
-            existingProduct.setStock(p.getStock());
+        existingProduct.setStock(p.getStock());
 
 
-         Product existing =productRepository.save(existingProduct);
+        Product existing = productRepository.save(existingProduct);
         indexProductInElasticsearch(existing);
     }
-    public void updateStockofProduct(Product p){
+
+    public void updateStockofProduct(Product p) {
         Product existingProduct = productRepository.findById(p.getId())
                 .orElseThrow(() -> new RuntimeException("Product not found"));
-        existingProduct.setStock(p.getStock());;
-       Product existing= productRepository.save(existingProduct);
+        existingProduct.setStock(p.getStock());
+        ;
+        Product existing = productRepository.save(existingProduct);
         indexProductInElasticsearch(existing);
     }
 
     @Override
     public List<AllProductRes> getProductByCategory(Long Id) {
         System.out.println("its coming");
-        Category cat=categoryRepository.findById(Id).orElseThrow(() -> new RuntimeException("Product not found"));
+        Category cat = categoryRepository.findById(Id).orElseThrow(() -> new RuntimeException("Product not found"));
         List<Product> products = productRepository.findByCategory(cat);
 
         List<AllProductRes> allProductResponses = new ArrayList<>();
         for (Product product : products) {
-            System.out.println("category name"+product.getCategory().getName());
+            System.out.println("category name" + product.getCategory().getName());
             AllProductRes response = modelMapper.map(product, AllProductRes.class);
             response.setCategory(product.getCategory().getName());
             Merchant merchant = merchantRepository.findById(product.getMerchant().getId()).orElse(null);
@@ -218,10 +222,12 @@ public class ProductServiceImplementation implements ProductService {
         document.setProductRating(product.getRating());
         document.setMerchantTotalProducts(merchant.getProducts().size());
         document.setMerchantTotalOrders(getTotalOrdersForMerchant(merchant.getId()));
+        document.setRatingCount(product.getRatingCount());
 
 
         productSearchRepository.save(document);
     }
+
     private int getTotalOrdersForMerchant(Long merchantId) {
         // Implement logic to get the total number of orders for the merchant
         Merchant merchant = merchantService.findMerchantById(merchantId)
@@ -247,15 +253,36 @@ public class ProductServiceImplementation implements ProductService {
         double priceWeight = 0.1;
         double totalOrdersWeight = 0.4;
 
-        double score=(product.getStock() * stockWeight) +
+        double score = (product.getStock() * stockWeight) +
                 (product.getProductRating() * ratingWeight) +
                 (product.getPrice() * priceWeight) +
                 (product.getMerchantTotalOrders() * totalOrdersWeight);
-        System.out.println("score" + product.getMerchantName()+ score);
+        System.out.println("score" + product.getMerchantName() + score);
         return score;
     }
+
     public void deleteAllProducts() {
         productSearchRepository.deleteAll();
+    }
+
+    @Override
+    public void updateProductRating(Long ProductId, double rating) {
+        Product existingProduct = productRepository.findById(ProductId)
+                .orElseThrow(() -> new RuntimeException("Product not found"));
+        Integer currentRatingCount = existingProduct.getRatingCount();
+        Double currentRating = existingProduct.getRating();
+        double newRating = calculateNewRating(rating, currentRatingCount, currentRating);
+        existingProduct.setRating(newRating);
+        existingProduct.setRatingCount(existingProduct.getRatingCount() + 1);
+        Product existing = productRepository.save(existingProduct);
+        indexProductInElasticsearch(existing);
+
+    }
+
+    private double calculateNewRating(double rating, int currentRatingCount, double currentRating) {
+        double newRating = ((currentRating * currentRatingCount) + rating) / (currentRatingCount + 1);
+        newRating = Math.min(5.0, Math.round(newRating * 10) / 10.0); // Ensures it rounds to one decimal and is capped at 5.0
+        return newRating;
     }
 
 }

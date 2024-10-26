@@ -21,6 +21,15 @@ public class ProductDocument {
     private Double productRating;
     private String file;
 
+    public Integer getRatingCount() {
+        return ratingCount;
+    }
+
+    public void setRatingCount(Integer ratingCount) {
+        this.ratingCount = ratingCount;
+    }
+
+    private Integer ratingCount;
     public Double getProductRating() {
         return productRating;
     }

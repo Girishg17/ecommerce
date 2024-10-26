@@ -28,6 +28,12 @@ public class Presponse {
     @JsonProperty("category")
     private String category;
 
+    @JsonProperty("rating")
+    private double rating;
+
+    @JsonProperty("totalRating")
+    private Integer totalRating;
+
     public String getFile() {
         return file;
     }
@@ -46,6 +52,8 @@ public class Presponse {
         this.file=product.getFile();
         this.description=product.getDescription();
         this.category=product.getCategory().getName();
+        this.rating=product.getRating();
+        this.totalRating=product.getRatingCount();
 
     }
 
