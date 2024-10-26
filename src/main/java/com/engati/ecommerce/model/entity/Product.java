@@ -24,8 +24,17 @@ public class Product {
 
     private Double rating;
     private Integer ratingCount;
+    private boolean deleted = false;
     public Integer getRatingCount() {
         return ratingCount;
+    }
+
+    public boolean isDeleted() {
+        return deleted;
+    }
+
+    public void setDeleted(boolean deleted) {
+        this.deleted = deleted;
     }
 
     public void setRatingCount(Integer ratingCount) {

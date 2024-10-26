@@ -1,10 +1,7 @@
 package com.engati.ecommerce.service.serviceImplementation;
 
 import com.engati.ecommerce.model.dto.ProductDto;
-import com.engati.ecommerce.model.entity.Category;
-import com.engati.ecommerce.model.entity.Merchant;
-import com.engati.ecommerce.model.entity.Product;
-import com.engati.ecommerce.model.entity.ProductDocument;
+import com.engati.ecommerce.model.entity.*;
 import com.engati.ecommerce.repository.*;
 import com.engati.ecommerce.request.ProdReq;
 import com.engati.ecommerce.request.ProductRequest;
@@ -52,6 +49,9 @@ public class ProductServiceImplementation implements ProductService {
     @Autowired
     private OrderRepository orderRepository;
 
+    @Autowired
+    private OrderItemRepository orderItemRepository;
+
     @Override
     public void addproduct(Long merchantId, ProductDto pdto) {
 
@@ -74,7 +74,7 @@ public class ProductServiceImplementation implements ProductService {
 
     @Override
     public List<AllProductRes> getAllProduct() {
-        List<Product> products = productRepository.findAll();
+        List<Product> products = productRepository.findAllByDeletedFalse();
         List<AllProductRes> allProductResponses = new ArrayList<>();
         for (Product product : products) {
             System.out.println("category name" + product.getCategory().getName());
@@ -89,7 +89,7 @@ public class ProductServiceImplementation implements ProductService {
 
     @Override
     public List<ProdResponse> getAllProductOfMerchant(Long merchantId) {
-        List<Product> products = productRepository.findByMerchantId(merchantId);
+        List<Product> products = productRepository.findByMerchantIdAndDeletedFalse(merchantId);
         return products.stream()
                 .map(this::convertToResponse)
                 .collect(Collectors.toList());
@@ -141,7 +141,11 @@ public class ProductServiceImplementation implements ProductService {
         if (!productRepository.existsById(id)) {
             throw new EntityNotFoundException("Product with ID " + id + " not found");
         }
-        productRepository.deleteById(id);
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Product with ID " + id + " not found"));
+
+        product.setDeleted(true);
+        productRepository.save(product);
         productSearchRepository.deleteById(id);
     }
 
@@ -191,7 +195,7 @@ public class ProductServiceImplementation implements ProductService {
     public List<AllProductRes> getProductByCategory(Long Id) {
         System.out.println("its coming");
         Category cat = categoryRepository.findById(Id).orElseThrow(() -> new RuntimeException("Product not found"));
-        List<Product> products = productRepository.findByCategory(cat);
+        List<Product> products = productRepository.findAllByCategoryAndDeletedFalse(cat);
 
         List<AllProductRes> allProductResponses = new ArrayList<>();
         for (Product product : products) {
