@@ -2,6 +2,8 @@ package com.engati.ecommerce.controller;
 
 import com.engati.ecommerce.model.entity.CartItem;
 import com.engati.ecommerce.model.entity.Order;
+import com.engati.ecommerce.model.enums.OrderStatus;
+import com.engati.ecommerce.request.OrderState;
 import com.engati.ecommerce.responses.CartResponse;
 import com.engati.ecommerce.responses.OrderResponse;
 import com.engati.ecommerce.service.CartService;
@@ -12,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
@@ -58,6 +61,24 @@ public class OrderController {
                 .collect(Collectors.toList());
 
         return ResponseEntity.ok(orderResponses);
+    }
+
+    @GetMapping("merchant/{merchantId}")
+    public ResponseEntity<List<OrderResponse>> getOrdersByMerchantId(@PathVariable Long merchantId) {
+        List<Order> orders = orderService.getOrdersOfMerchant(merchantId);
+
+        // Map each order to OrderResponse
+        List<OrderResponse> orderResponses = orders.stream()
+                .map(OrderResponse::new)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(orderResponses);
+    }
+
+    @PutMapping("merchant/setstatus/{orderId}")
+    public ResponseEntity<Order> updateOrderStatus(@PathVariable Long orderId, @RequestBody OrderState status) {
+        Order updatedOrder = orderService.updateOrderStatus(orderId, status);
+        return ResponseEntity.ok(updatedOrder);
     }
 
 }

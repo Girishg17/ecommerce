@@ -7,9 +7,11 @@ import com.engati.ecommerce.repository.OrderRepository;
 import com.engati.ecommerce.repository.ProductRepository;
 import com.engati.ecommerce.repository.ProductSearchRepository;
 import com.engati.ecommerce.repository.UserRepository;
+import com.engati.ecommerce.request.OrderState;
 import com.engati.ecommerce.service.*;
 //import com.engati.ecommerce.service.EmailService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.elasticsearch.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -38,6 +40,8 @@ public class OrderServiceImpl implements OrderService {
     @Autowired
     private CartService cartService;
 
+    @Autowired
+    private MerchantService merchantService;
     @Override
     public void createOrderForUser(Long userId, List<CartItem> cartItems, Long cartId) {
         User user = userService.getUserById(userId).orElseThrow(() -> new RuntimeException("User not found"));
@@ -80,10 +84,10 @@ public class OrderServiceImpl implements OrderService {
             cartService.deleteCart(cartId);
 
 
-//
-//            emailService.sendEmail(user.getEmail(),
-//                    "Confirmation of Your Order #" + order.getId(),
-//                    "Your order has been placed successfully.");
+
+            emailService.sendEmail(user.getEmail(),
+                    "Confirmation of Your Order #" + order.getId(),
+                    "Your order has been placed successfully.");
 //
         }
 
@@ -96,6 +100,12 @@ public class OrderServiceImpl implements OrderService {
         return orderRepository.findByUser(user);
     }
 
+    @Override
+    public List<Order> getOrdersOfMerchant(Long merchantId){
+        Merchant merchant = merchantService.findMerchantById(merchantId)
+                .orElseThrow(() -> new RuntimeException("Merchant not found"));
+         return orderRepository.findByMerchant(merchant);
+    }
 
     private void incrementMerchantOrdersInElasticsearch(Long merchantId) {
         // Retrieve all ProductDocuments for the given merchant
@@ -108,5 +118,11 @@ public class OrderServiceImpl implements OrderService {
 
         // Save updated product documents back to Elasticsearch
         productSearchRepository.saveAll(merchantProducts);
+    }
+
+    public Order updateOrderStatus(Long orderId, OrderState status) {
+        Order order = orderRepository.findById(orderId).orElseThrow(() -> new ResourceNotFoundException("Order not found"));
+        order.setStatus(status.getStatus());
+        return orderRepository.save(order);
     }
 }
