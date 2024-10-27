@@ -31,7 +31,6 @@ public class Order {
     @Enumerated(EnumType.STRING)
     private OrderStatus status;
 
-    // Getters and Setters
     public Long getId() {
         return id;
     }

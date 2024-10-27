@@ -1,6 +1,5 @@
 package com.engati.ecommerce.controller;
 
-import com.engati.ecommerce.model.dto.CartDTO;
 import com.engati.ecommerce.model.dto.CartItemDto;
 import com.engati.ecommerce.request.QuantityReq;
 import com.engati.ecommerce.responses.CartResponse;
@@ -26,7 +25,6 @@ public class CartController {
 
     @PostMapping("/{userId}/add")
     public ResponseEntity<String> addToCart(@PathVariable Long userId, @RequestBody CartItemDto cartItemDTO) {
-        System.out.println(cartItemDTO.getProductId() + cartItemDTO.getQuantity());
         String message = cartService.addToCart(userId, cartItemDTO);
         return ResponseEntity.ok(message);
     }

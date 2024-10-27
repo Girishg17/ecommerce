@@ -1,21 +1,15 @@
 package com.engati.ecommerce.controller;
 
 import com.engati.ecommerce.model.dto.ProductDto;
-import com.engati.ecommerce.model.entity.Merchant;
 import com.engati.ecommerce.model.entity.Product;
 import com.engati.ecommerce.request.ProductRequest;
-import com.engati.ecommerce.service.CloudinaryService;
 import com.engati.ecommerce.service.MerchantService;
 import com.engati.ecommerce.service.ProductService;
-import com.engati.ecommerce.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
-
 import java.io.IOException;
-import java.util.Map;
+
 
 //@CrossOrigin(origins = "http://localhost:5173")
 @RestController
@@ -27,7 +21,6 @@ public class MerchantController {
 
     @Autowired
     private MerchantService merchantService;
-
 
 
     @PostMapping("/{merchantId}/upload")
@@ -43,7 +36,7 @@ public class MerchantController {
             @ModelAttribute ProductRequest productRequest,
             @PathVariable Long merchantId
     ) throws IOException {
-        productService.addproductswithCloudinary(productRequest,merchantId);
+        productService.addproductswithCloudinary(productRequest, merchantId);
         return ResponseEntity.ok("Product created successfully");
 
     }

@@ -1,7 +1,5 @@
 package com.engati.ecommerce.model.dto;
 
-import com.engati.ecommerce.model.dto.CartItemDto;
-
 import java.util.List;
 
 public class CartDTO {
@@ -9,7 +7,6 @@ public class CartDTO {
     private Long userId;
     private List<CartItemDto> items;
 
-    // Getters and Setters
 
     public Long getCartId() {
         return cartId;

@@ -10,7 +10,6 @@ public class CartItemResponse {
     private Integer productStock;
     private Integer quantity;
 
-    // Getters and Setters for all fields
 
     public Long getProductId() {
         return productId;

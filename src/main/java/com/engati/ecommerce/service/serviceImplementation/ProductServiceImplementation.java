@@ -14,12 +14,10 @@ import jakarta.persistence.EntityNotFoundException;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -63,7 +61,7 @@ public class ProductServiceImplementation implements ProductService {
 
         Product product = modelMapper.map(pdto, Product.class);
         product.setMerchant(merchant);
-        product.setCategory(category);  // <-- Set Category
+        product.setCategory(category);
         productRepository.save(product);
     }
 
@@ -77,10 +75,8 @@ public class ProductServiceImplementation implements ProductService {
         List<Product> products = productRepository.findAllByDeletedFalse();
         List<AllProductRes> allProductResponses = new ArrayList<>();
         for (Product product : products) {
-            System.out.println("category name" + product.getCategory().getName());
             AllProductRes response = modelMapper.map(product, AllProductRes.class);
             response.setCategory(product.getCategory().getName());
-            Merchant merchant = merchantRepository.findById(product.getMerchant().getId()).orElse(null);
             allProductResponses.add(response);
         }
 
@@ -101,7 +97,6 @@ public class ProductServiceImplementation implements ProductService {
 
     @Override
     public void addproductswithCloudinary(ProductRequest productRequest, Long merchantId) throws IOException {
-        System.out.println("its coming here");
         String imageUrl = cloudinaryService.upload(productRequest.getImage());
         Merchant merchant = merchantService.findMerchantById(merchantId)
                 .orElseThrow(() -> new RuntimeException("Merchant not found"));
@@ -109,29 +104,19 @@ public class ProductServiceImplementation implements ProductService {
         Category category = categoryRepository.findById(productRequest.getCategoryId())
                 .orElseThrow(() -> new RuntimeException("Category not found"));
 
-//        Product product = modelMapper.map(productRequest, Product.class);
-//        product.setMerchant(merchant);
-//        product.setCategory(category);
-//        product.setFile(imageUrl);
-//
-//        productRepository.save(product);
 
         Product product = new Product();
 
-        // Manually set the properties from productRequest to product
         product.setName(productRequest.getName());
         product.setUsp(productRequest.getUsp());
         product.setDescription(productRequest.getDescription());
         product.setFile(imageUrl);
         product.setPrice(productRequest.getPrice());
         product.setStock(productRequest.getStock());
-        product.setMerchant(merchant); // Associate the merchant
-        product.setCategory(category); // Associate the existing category
+        product.setMerchant(merchant);
+        product.setCategory(category);
         product.setRating(0.0);
         product.setRatingCount(0);
-        System.out.println("Saving product with name: " + product.getName() + " and category: " + category.getName());
-
-        // Save the product; this should not modify the existing category
         Product saved = productRepository.save(product);
         indexProductInElasticsearch(saved);
     }
@@ -158,23 +143,8 @@ public class ProductServiceImplementation implements ProductService {
             String imageUrl = cloudinaryService.upload(p.getImage());
             existingProduct.setFile(imageUrl);
         }
-
         existingProduct.setName(p.getName());
-
-
-//            existingProduct.setUsp(dto.getUsp());
-
-//        if (dto.getDescription() != null) {
-//            existingProduct.setDescription(dto.getDescription());
-//        }
-//        if (dto.getFile() != null) {
-//            Category category = categoryRepository.findById(dto.getCategoryId())
-//                    .orElseThrow(() -> new RuntimeException("Category not found"));
-//            existingProduct.setCategory(category);
-//        }
-
         existingProduct.setPrice(p.getPrice());
-
         existingProduct.setStock(p.getStock());
 
 
@@ -186,24 +156,19 @@ public class ProductServiceImplementation implements ProductService {
         Product existingProduct = productRepository.findById(p.getId())
                 .orElseThrow(() -> new RuntimeException("Product not found"));
         existingProduct.setStock(p.getStock());
-        ;
         Product existing = productRepository.save(existingProduct);
         indexProductInElasticsearch(existing);
     }
 
     @Override
     public List<AllProductRes> getProductByCategory(Long Id) {
-        System.out.println("its coming");
         Category cat = categoryRepository.findById(Id).orElseThrow(() -> new RuntimeException("Product not found"));
         List<Product> products = productRepository.findAllByCategoryAndDeletedFalse(cat);
 
         List<AllProductRes> allProductResponses = new ArrayList<>();
         for (Product product : products) {
-            System.out.println("category name" + product.getCategory().getName());
             AllProductRes response = modelMapper.map(product, AllProductRes.class);
             response.setCategory(product.getCategory().getName());
-            Merchant merchant = merchantRepository.findById(product.getMerchant().getId()).orElse(null);
-
 
             allProductResponses.add(response);
         }
@@ -233,17 +198,12 @@ public class ProductServiceImplementation implements ProductService {
     }
 
     private int getTotalOrdersForMerchant(Long merchantId) {
-        // Implement logic to get the total number of orders for the merchant
         Merchant merchant = merchantService.findMerchantById(merchantId)
                 .orElseThrow(() -> new RuntimeException("Merchant not found"));
         return orderRepository.findByMerchant(merchant).size(); // Example value
     }
 
-//    private double getMerchantReview(Long merchantId) {
-//        Merchant merchant = merchantService.findMerchantById(merchantId)
-//                .orElseThrow(() -> new RuntimeException("Merchant not found"));
-//        return merchant.getRating();
-//    }
+
 
     public List<ProductDocument> searchProducts(String name) {
         List<ProductDocument> products = productSearchRepository.findByNameContaining(name);
@@ -285,7 +245,7 @@ public class ProductServiceImplementation implements ProductService {
 
     private double calculateNewRating(double rating, int currentRatingCount, double currentRating) {
         double newRating = ((currentRating * currentRatingCount) + rating) / (currentRatingCount + 1);
-        newRating = Math.min(5.0, Math.round(newRating * 10) / 10.0); // Ensures it rounds to one decimal and is capped at 5.0
+        newRating = Math.min(5.0, Math.round(newRating * 10) / 10.0);
         return newRating;
     }
 

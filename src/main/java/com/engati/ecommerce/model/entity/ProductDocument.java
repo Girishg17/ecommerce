@@ -122,5 +122,4 @@ public class ProductDocument {
     }
 
 
-// Getters and setters
 }

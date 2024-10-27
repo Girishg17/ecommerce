@@ -7,9 +7,6 @@ import com.engati.ecommerce.request.ProdReq;
 import com.engati.ecommerce.request.ProductRequest;
 import com.engati.ecommerce.responses.AllProductRes;
 import com.engati.ecommerce.responses.ProdResponse;
-import com.engati.ecommerce.responses.ProductResponse;
-import org.springframework.web.multipart.MultipartFile;
-
 import java.io.IOException;
 import java.util.List;
 

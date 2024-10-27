@@ -6,7 +6,6 @@ public class ProductDto {
     private String description;
     private Double price;
     private Integer stock;
-    //    private String category;
     private String file;
     private Long categoryId;
 
@@ -67,12 +66,5 @@ public class ProductDto {
         this.stock = stock;
     }
 
-//    public String getCategory() {
-//        return category;
-//    }
-//
-//    public void setCategory(String category) {
-//        this.category = category;
-//    }
 
 }

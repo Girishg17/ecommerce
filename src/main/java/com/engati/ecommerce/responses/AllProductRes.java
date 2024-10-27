@@ -20,6 +20,8 @@ public class AllProductRes {
 
     private Integer ratingCount;
 
+    private String category;
+
     public Integer getRatingCount() {
         return ratingCount;
     }
@@ -114,7 +116,7 @@ public class AllProductRes {
         this.rating = rating;
     }
 
-    private String category;
+
 
 
 

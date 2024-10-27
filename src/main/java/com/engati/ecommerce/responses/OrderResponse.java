@@ -1,10 +1,8 @@
 package com.engati.ecommerce.responses;
 
 import com.engati.ecommerce.model.entity.Order;
-import com.engati.ecommerce.model.entity.OrderItem;
 import com.engati.ecommerce.model.enums.OrderStatus;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -22,11 +20,9 @@ public class OrderResponse {
     @JsonProperty("status")
     private OrderStatus status;
 
-    // Constructor
     public OrderResponse(Order order) {
         this.orderId = order.getId();
 
-        // Map each OrderItem to Presponse, including the quantity
         this.products = order.getOrderItems().stream()
                 .map(orderItem -> new Presponse(orderItem.getProduct(), orderItem))
                 .collect(Collectors.toList());
@@ -35,14 +31,12 @@ public class OrderResponse {
         this.status = order.getStatus();
     }
 
-    // Method to calculate total price
     private Double calculateTotalPrice(Order order) {
         return order.getOrderItems().stream()
                 .mapToDouble(item -> item.getProduct().getPrice() * item.getQuantity())
                 .sum();
     }
 
-    // Getters
     public Long getOrderId() {
         return orderId;
     }

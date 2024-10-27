@@ -1,6 +1,5 @@
 package com.engati.ecommerce.controller;
 
-import com.engati.ecommerce.model.entity.Category;
 import com.engati.ecommerce.responses.CategoryRes;
 import com.engati.ecommerce.service.CategoryService;
 import org.springframework.beans.factory.annotation.Autowired;

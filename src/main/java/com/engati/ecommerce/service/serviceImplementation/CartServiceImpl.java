@@ -1,6 +1,5 @@
 package com.engati.ecommerce.service.serviceImplementation;
 
-import com.engati.ecommerce.model.dto.CartDTO;
 import com.engati.ecommerce.model.dto.CartItemDto;
 import com.engati.ecommerce.model.entity.Cart;
 import com.engati.ecommerce.model.entity.CartItem;
@@ -52,9 +51,8 @@ public class CartServiceImpl implements CartService {
             List<CartItemResponse> itemResponses = new ArrayList<>();
 
             for (CartItem cartItem : cart.getItems()) {
-                Product product = productService.getProductById(cartItem.getProduct().getId()); // Fetch the product
+                Product product = productService.getProductById(cartItem.getProduct().getId());
 
-                // Create a new CartItemResponse for each cart item
                 CartItemResponse itemResponse = new CartItemResponse();
                 itemResponse.setProductId(product.getId());
                 itemResponse.setProductName(product.getName());
@@ -68,67 +66,47 @@ public class CartServiceImpl implements CartService {
                 itemResponses.add(itemResponse);
             }
 
-            cartResponse.setItems(itemResponses); // Set the list of items in the cart response
+            cartResponse.setItems(itemResponses);
         }
 
         return cartResponse; // Return the cart response
     }
 
 
-
-//    public void addToCart(Long userId, CartItemDto cartItemDTO) {
-//        Cart cart = cartRepository.findByUserId(userId).orElseGet(() -> createNewCart(userId));
-//        System.out.println("cart"+cart.getItems());
-//        Product product = productRepository.findById(cartItemDTO.getProductId())
-//                .orElseThrow(() -> new RuntimeException("Product not found"));
-//        System.out.println("PR "+product.getName());
-////
-//        CartItem cartItem = new CartItem();
-//        cartItem.setProduct(product);
-//        cartItem.setQuantity(cartItemDTO.getQuantity());
-//        cartItem.setCart(cart);
-////
-//        cart.getItems().add(cartItem);
-//        cartRepository.save(cart);
-//    }
-public List<CartItem> cartItemofUser(Long userId) {
-        List<CartItem>cart=cartRepository.findByUserId(userId).get().getItems();
+    public List<CartItem> cartItemofUser(Long userId) {
+        List<CartItem> cart = cartRepository.findByUserId(userId).get().getItems();
         return cart;
-}
-public Long getCartId(Long userId){
+    }
+
+    public Long getCartId(Long userId) {
         return cartRepository.findByUserId(userId).get().getId();
-}
+    }
+
     public String addToCart(Long userId, CartItemDto cartItemDTO) {
-        // Find or create a new cart for the user
         Cart cart = cartRepository.findByUserId(userId).orElseGet(() -> createNewCart(userId));
         if (cart == null) {
             return "Cart could not be created";
         }
-        // Find the product by ID
+
         Product product = productRepository.findById(cartItemDTO.getProductId())
                 .orElseThrow(() -> new RuntimeException("Product not found"));
-        System.out.println("PR " + product.getName());
 
-        // Check if the product is already in the cart
         boolean productExistsInCart = cart.getItems().stream()
                 .anyMatch(item -> item.getProduct().getId().equals(cartItemDTO.getProductId()));
 
         if (productExistsInCart) {
-            // If product already exists, return an error message
             return "Product already in cart";
         }
 
-        // Create a new CartItem and set its properties
+
         CartItem cartItem = new CartItem();
         cartItem.setProduct(product);
         cartItem.setQuantity(cartItemDTO.getQuantity());
         cartItem.setCart(cart);
 
-        // Add the new CartItem to the cart and save
         cart.getItems().add(cartItem);
         cartRepository.save(cart);
 
-        // Return success message
         return "Product added to cart successfully";
     }
 
@@ -157,9 +135,8 @@ public Long getCartId(Long userId){
         cartItem.setQuantity(quantity);
         cartItemRepository.save(cartItem);
     }
-    public void deleteCart(Long cartId){
 
+    public void deleteCart(Long cartId) {
         cartRepository.deleteById(cartId);
-        System.out.println("Deleted succces");
     }
 }
