@@ -1,8 +1,6 @@
 package com.engati.ecommerce.responses;
 
-import com.engati.ecommerce.model.entity.Category;
-import com.engati.ecommerce.model.entity.Product;
-import com.engati.ecommerce.model.entity.OrderItem;
+import com.engati.ecommerce.service.CategoryService;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class Presponse {
@@ -44,17 +42,39 @@ public class Presponse {
 
 
     // Constructor
-    public Presponse(Product product, OrderItem orderItem) {
-        this.productId = product.getId();
-        this.productName = product.getName();
-        this.price = product.getPrice();
-        this.quantity = orderItem.getQuantity();
-        this.file=product.getFile();
-        this.description=product.getDescription();
-        this.category=product.getCategory().getName();
-        this.rating=product.getRating();
-        this.totalRating=product.getRatingCount();
+//    public Presponse(ProductsDto product, OrderItem orderItem, CategoryService categoryService) {
+//        this.productId = product.getId();
+//        this.productName = product.getName();
+//        this.price = product.getPrice();
+//        this.quantity = orderItem.getQuantity();
+//        this.file=product.getFile();
+//        this.description=product.getDescription();
+//
+//        this.rating=product.getRating();
+//        this.totalRating=product.getRatingCount();
+//        Optional<Category> categoryDTO = categoryService.findById(product.getCategoryId());
+//        this.category = categoryDTO != null ? categoryDTO.get().getName() : "Unknown";
+//    }
 
+    public Presponse(String name, String usp, String description, String file,
+                     Double price, Integer stock, Double rating, Integer ratingCount,
+                     Long merchantId, Long categoryId, boolean deleted,
+                     Integer quantity, Long productId, CategoryService categoryService) {
+        this.productName = name;
+//        this. = usp;
+        this.productId=productId;
+        this.description = description;
+        this.file = file;
+        this.price = price;
+//        this.stock = stock;
+        this.rating = rating;
+        this.totalRating = ratingCount;
+        this.quantity=quantity;
+//        this.merchantId = merchantId;
+//        this.categoryId = categoryId;
+//        this.deleted = deleted;
+
+        // You can utilize categoryService here if needed
     }
 
     // Getters and Setters

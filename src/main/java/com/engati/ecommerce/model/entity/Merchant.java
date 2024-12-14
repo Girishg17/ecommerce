@@ -16,8 +16,8 @@ public class Merchant {
 
 
 
-    @OneToMany(mappedBy = "merchant", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Product> products;
+//    @OneToMany(mappedBy = "merchant", cascade = CascadeType.ALL, orphanRemoval = true)
+//    private List<Product> products;
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -26,8 +26,8 @@ public class Merchant {
     public void setUser(User user) { this.user = user; }
 
 
-    public List<Product> getProducts() { return products; }
-    public void setProducts(List<Product> products) { this.products = products; }
+//    public List<Product> getProducts() { return products; }
+//    public void setProducts(List<Product> products) { this.products = products; }
 
 
 }

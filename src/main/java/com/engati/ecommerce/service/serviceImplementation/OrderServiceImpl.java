@@ -1,19 +1,25 @@
 package com.engati.ecommerce.service.serviceImplementation;
 
+import com.engati.ecommerce.model.dto.CartItDto;
+import com.engati.ecommerce.model.dto.ProductsDto;
 import com.engati.ecommerce.model.entity.*;
 import com.engati.ecommerce.model.enums.OrderStatus;
+import com.engati.ecommerce.repository.OrderItemRepository;
 import com.engati.ecommerce.repository.OrderRepository;
-import com.engati.ecommerce.repository.ProductSearchRepository;
 import com.engati.ecommerce.request.OrderState;
 import com.engati.ecommerce.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.elasticsearch.ResourceNotFoundException;
+import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
+
 
 @Service
 public class OrderServiceImpl implements OrderService {
@@ -22,50 +28,73 @@ public class OrderServiceImpl implements OrderService {
 
     @Autowired
     private OrderRepository orderRepository;
-    @Autowired
-    private EmailService emailService;
 
-    @Autowired
-    private ProductService productService;
-
-    @Autowired
-    private ProductSearchRepository productSearchRepository;
-
-    @Autowired
-    private CartService cartService;
 
     @Autowired
     private MerchantService merchantService;
+
+    @Autowired
+    private OrderItemRepository orderItemRepository;
+
+    @Autowired
+    private RestTemplate restTemplate;
     @Override
-    public void createOrderForUser(Long userId, List<CartItem> cartItems, Long cartId) {
+    public void createOrderForUser(Long userId, List<CartItDto> cartItems, Long cartId) {
         User user = userService.getUserById(userId).orElseThrow(() -> new RuntimeException("User not found"));
-        Map<Merchant, List<CartItem>> itemsGroupedByMerchant = cartItems.stream()
-                .collect(Collectors.groupingBy(item -> item.getProduct().getMerchant()));
-        for (Map.Entry<Merchant, List<CartItem>> entry : itemsGroupedByMerchant.entrySet()) {
+
+        Map<Merchant, List<CartItDto>> itemsGroupedByMerchant = new HashMap<>();
+
+        for (CartItDto cartItem : cartItems) {
+            String productUrl = "http://localhost:8083/product/products/" + cartItem.getProductId();
+            ProductsDto product = restTemplate.getForObject(productUrl, ProductsDto.class);
+
+            if (product != null) {
+                Long merchantId = product.getMerchantId();
+                Merchant merchants = merchantService.findMerchantById(merchantId)
+                        .orElseThrow(() -> new RuntimeException("Merchant not found"));
+
+                itemsGroupedByMerchant
+                        .computeIfAbsent(merchants, k -> new ArrayList<>())
+                        .add(cartItem);
+            }
+        }
+        for (Map.Entry<Merchant, List<CartItDto>> entry : itemsGroupedByMerchant.entrySet()) {
             Merchant merchant = entry.getKey();
-            List<CartItem> merchantItems = entry.getValue();
+            List<CartItDto> merchantItems = entry.getValue();
             Order order = new Order();
             order.setUser(user);
             order.setMerchant(merchant);
 
             List<OrderItem> orderItems = new ArrayList<>();
             Double totalAmount = 0.0;
-            for (CartItem cartItem : merchantItems) {
+            for (CartItDto cartItem : merchantItems) {
                 OrderItem orderItem = new OrderItem();
                 orderItem.setOrder(order);
-                orderItem.setProduct(cartItem.getProduct());
+                String productUrl = "http://localhost:8083/product/products/" + cartItem.getProductId();
+                ProductsDto product = restTemplate.getForObject(productUrl, ProductsDto.class);
+                orderItem.setProductId(product.getId());
+                orderItem.setFile(product.getFile());
+                orderItem.setName(product.getName());
+               // orderItem.setProductprice(product.getPrice());
+                orderItem.setStock(product.getStock());
                 orderItem.setQuantity(cartItem.getQuantity());
-                orderItem.setPrice(cartItem.getProduct().getPrice());
-
-                totalAmount += cartItem.getQuantity() * cartItem.getProduct().getPrice();
+                orderItem.setPrice(product.getPrice());
+                orderItem.setUsp(product.getUsp());
+                orderItem.setDescription(product.getDescription());
+                orderItem.setRating(product.getRating());
+                orderItem.setRatingCount(product.getRatingCount());
+                totalAmount += cartItem.getQuantity() * product.getPrice();
                 orderItems.add(orderItem);
-                Product product = cartItem.getProduct();
+
                 int newStock = product.getStock() - cartItem.getQuantity();
                 if (newStock < 0) {
                     throw new RuntimeException("Insufficient stock for product: " + product.getName());
                 }
                 product.setStock(newStock);
-                productService.updateStockofProduct(product);
+
+
+                String updateStockUrl = "http://localhost:8083/product/" + product.getId() + "/stock";
+                restTemplate.put(updateStockUrl, product);
 
             }
             order.setOrderDate(LocalDateTime.now());
@@ -73,9 +102,17 @@ public class OrderServiceImpl implements OrderService {
             order.setTotalAmount(totalAmount);
             order.setStatus(OrderStatus.PENDING);
             orderRepository.save(order);
-            incrementMerchantOrdersInElasticsearch(merchant.getId());
-            cartService.deleteCart(cartId);
+            String url = "http://localhost:8085/products/search/increment/" + merchant.getId();
+            restTemplate.postForEntity(url, null, Void.class);
 
+            String cartUrl="http://localhost:8084/api/cart/delete/"+cartId;
+            restTemplate.exchange(
+                    cartUrl,
+                    HttpMethod.DELETE,
+                    null,
+                    Void.class
+            );
+           // cartService.deleteCart(cartId);
 
 
 //            emailService.sendEmail(user.getEmail(),
@@ -99,19 +136,22 @@ public class OrderServiceImpl implements OrderService {
          return orderRepository.findByMerchant(merchant);
     }
 
-    private void incrementMerchantOrdersInElasticsearch(Long merchantId) {
-        List<ProductDocument> merchantProducts = productSearchRepository.findAllByMerchantId(merchantId);
 
-        for (ProductDocument product : merchantProducts) {
-            product.setMerchantTotalOrders(product.getMerchantTotalOrders() + 1);
-        }
-
-        productSearchRepository.saveAll(merchantProducts);
-    }
 
     public Order updateOrderStatus(Long orderId, OrderState status) {
         Order order = orderRepository.findById(orderId).orElseThrow(() -> new ResourceNotFoundException("Order not found"));
         order.setStatus(status.getStatus());
         return orderRepository.save(order);
+    }
+
+    public void updateCartItemRatings(Long productId, double newRating) {
+        List<OrderItem> orderItems = orderItemRepository.findByProductId(productId);
+
+        for (OrderItem orderItem : orderItems) {
+            orderItem.setRating(newRating);
+            orderItem.setRatingCount(orderItem.getRatingCount()+1);
+        }
+
+        orderItemRepository.saveAll(orderItems);
     }
 }

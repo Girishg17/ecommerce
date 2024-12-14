@@ -1,63 +1,24 @@
-package com.engati.ecommerce.model.entity;
+package com.engati.ecommerce.model.dto;
 
-import jakarta.persistence.*;
+public class ProductsDto {
 
-@Entity
-@Table(name = "Products")
-public class Product {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     private String name;
-
     private String usp;
-
     private String description;
-
     private String file;
-
     private Double price;
-
     private Integer stock;
-
     private Double rating;
     private Integer ratingCount;
-    private boolean deleted = false;
-    public Integer getRatingCount() {
-        return ratingCount;
-    }
+    private Long merchantId;
+    private Long categoryId;
+    private boolean deleted;
 
-    public boolean isDeleted() {
-        return deleted;
-    }
+    // Default constructor
+    public ProductsDto() {}
 
-    public void setDeleted(boolean deleted) {
-        this.deleted = deleted;
-    }
-
-    public void setRatingCount(Integer ratingCount) {
-        this.ratingCount = ratingCount;
-    }
-
-
-    public Double getRating() {
-        return rating;
-    }
-
-    public void setRating(Double rating) {
-        this.rating = rating;
-    }
-
-    @ManyToOne
-    @JoinColumn(name = "merchant_id")
-    private Merchant merchant;
-
-    @ManyToOne
-    @JoinColumn(name = "category_id")
-    private Category category;
-
+    // Getters and Setters
     public Long getId() {
         return id;
     }
@@ -114,19 +75,43 @@ public class Product {
         this.stock = stock;
     }
 
-    public Merchant getMerchant() {
-        return merchant;
+    public Double getRating() {
+        return rating;
     }
 
-    public void setMerchant(Merchant merchant) {
-        this.merchant = merchant;
+    public void setRating(Double rating) {
+        this.rating = rating;
     }
 
-    public Category getCategory() {
-        return category;
+    public Integer getRatingCount() {
+        return ratingCount;
     }
 
-    public void setCategory(Category category) {
-        this.category = category;
+    public void setRatingCount(Integer ratingCount) {
+        this.ratingCount = ratingCount;
+    }
+
+    public Long getMerchantId() {
+        return merchantId;
+    }
+
+    public void setMerchantId(Long merchantId) {
+        this.merchantId = merchantId;
+    }
+
+    public Long getCategoryId() {
+        return categoryId;
+    }
+
+    public void setCategoryId(Long categoryId) {
+        this.categoryId = categoryId;
+    }
+
+    public boolean isDeleted() {
+        return deleted;
+    }
+
+    public void setDeleted(boolean deleted) {
+        this.deleted = deleted;
     }
 }
